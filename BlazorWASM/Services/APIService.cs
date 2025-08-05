@@ -1,4 +1,6 @@
+using System.Net.Http.Json;
 using System.Text.Json;
+using BlazorWASM.Models;
 
 namespace BlazorWASM.Services
 {
@@ -32,6 +34,19 @@ namespace BlazorWASM.Services
                 Console.WriteLine($"Fejl ved tjek af backend status: {ex.Message}");
                 return null;
             }
+        }
+
+        public async Task<List<TriviaQuestion>> GetTriviaQuestionsAsync()
+        {
+            var response = await _httpClient.GetFromJsonAsync<TriviaResponse>("https://opentdb.com/api.php?amount=5&difficulty=easy&type=multiple");
+
+            foreach (var question in response.Results)
+            {
+                var allAnswers = question.Incorrect_Answers.Append(question.Correct_Answer).ToList();
+                question.Incorrect_Answers = allAnswers.OrderBy(_ => Guid.NewGuid()).ToList();
+            }
+
+            return response.Results;
         }
     }
 
