@@ -12,7 +12,7 @@ Vores projekt benytter Open Trivia DB (https://opentdb.com/) og uddeler dem som 
 # Teknologi
 - Blazor WebAssembly
 - Trivia API
-- 'HttpClient' + 'GetFromJsonAsync'
+- HttpClient + GetFromJsonAsync
 
 # Sådan virker det
 - APIService (APIService.cs) kalder trivia API'et
