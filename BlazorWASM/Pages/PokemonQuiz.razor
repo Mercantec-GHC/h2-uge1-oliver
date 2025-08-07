@@ -1,0 +1,196 @@
+﻿@page "/pokemonquiz"
+@inject PokemonService PokemonService
+@inject HighscoreService HighscoreService
+
+<link href="css/PokemonQuiz.css" rel="stylesheet" />
+
+<div class="quiz-container">
+    <div class="title-image">
+        <img src="hvemerdennepokemon.png" alt="Who's That Pokémon?" />
+    </div>
+
+    @if (!isQuizStarted)
+    {
+        <div class="intro-text">Vælg antal Pokémon du vil gætte</div>
+        <div class="answer-buttons">
+            <button @onclick="() => StartQuiz(5)">5 Pokémoner</button>
+            <button @onclick="() => StartQuiz(20)">20 Pokémoner</button>
+            <button @onclick="() => StartQuiz(50)">50 Pokémoner</button>
+            <button @onclick="() => StartQuiz(100)">100 Pokémoner</button>
+        </div>
+    }
+    else if (isLoading)
+    {
+        <p>Indlæser spørgsmål...</p>
+    }
+    else if (currentQuestion <= totalQuestions)
+    {
+        <div class="question-counter">
+            Pokémon @currentQuestion / @totalQuestions
+        </div>
+
+        <img class="pokemon-image" src="@correctImageUrl" alt="Gæt Pokémonen" />
+
+        <div class="answer-buttons">
+            @foreach (var option in answerOptions)
+            {
+                <button @key="option" @onclick="() => CheckAnswer(option)">@option</button>
+            }
+        </div>
+
+        @if (feedback != null)
+        {
+            <div class="feedback">@feedback</div>
+        }
+    }
+    else
+    {
+        <h4>Quiz færdig!</h4>
+        <p>Du fik @score ud af @totalQuestions rigtige.</p>
+        <div class="final-banner">Gotta catch 'em all!</div>
+
+        @if (!highscoreSaved)
+        {
+            <p>Indtast dit navn for at gemme highscore:</p>
+            <input @bind="playerName" placeholder="Dit navn" />
+            <button @onclick="SaveHighscore">Gem highscore</button>
+        }
+        else
+        {
+            <p>Highscore gemt ✅</p>
+        }
+
+        @if (highscores?.Count > 0)
+        {
+            <h5>Top 10 Highscores</h5>
+            <ol>
+                @foreach (var hs in highscores)
+                {
+                    <li>@hs.PlayerName: @hs.Score/@hs.Total (@hs.Date.ToShortDateString())</li>
+                }
+            </ol>
+        }
+
+        <button class="restart-button" @onclick="ResetQuiz">Start igen</button>
+    }
+</div>
+
+@code {
+    private int currentQuestion = 1;
+    private int totalQuestions = 10;
+    private int score = 0;
+    private bool isLoading = false;
+    private bool isQuizStarted = false;
+
+    private string correctAnswer;
+    private string correctImageUrl;
+    private string feedback;
+    private List<string> answerOptions = new();
+
+    // Highscore
+    private string playerName;
+    private bool highscoreSaved = false;
+    private List<HighscoreEntry> highscores = new();
+
+    private void StartQuiz(int amount)
+    {
+        totalQuestions = amount;
+        currentQuestion = 1;
+        score = 0;
+        isQuizStarted = true;
+        highscoreSaved = false;
+        playerName = "";
+        _ = LoadQuestion();
+    }
+
+    private void ResetQuiz()
+    {
+        isQuizStarted = false;
+        feedback = null;
+        answerOptions.Clear();
+        correctAnswer = null;
+        highscores.Clear();
+    }
+
+    private async Task LoadQuestion()
+    {
+        isLoading = true;
+        feedback = null;
+        answerOptions.Clear();
+
+        var (name, image) = await PokemonService.GetRandomPokemonAsync();
+        correctAnswer = Capitalize(name);
+        correctImageUrl = image;
+
+        var random = new Random();
+        var ids = new HashSet<int>();
+        while (ids.Count < 3)
+        {
+            int id = random.Next(1, 151);
+            ids.Add(id);
+        }
+
+        foreach (var id in ids)
+        {
+            var nameOption = await PokemonService.GetPokemonNameByIdAsync(id);
+            var formatted = Capitalize(nameOption);
+            if (formatted != correctAnswer && !answerOptions.Contains(formatted))
+                answerOptions.Add(formatted);
+        }
+
+        answerOptions.Add(correctAnswer);
+        answerOptions = answerOptions.OrderBy(_ => Guid.NewGuid()).ToList();
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task CheckAnswer(string selected)
+    {
+        if (selected == correctAnswer)
+        {
+            score++;
+            feedback = "✔️ Korrekt!";
+        }
+        else
+        {
+            feedback = $"❌ Forkert! Det rigtige svar var: {correctAnswer}";
+        }
+
+        await Task.Delay(1500);
+
+        if (currentQuestion < totalQuestions)
+        {
+            currentQuestion++;
+            await LoadQuestion();
+        }
+        else
+        {
+            currentQuestion++;
+            highscores = await HighscoreService.GetHighscoresAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveHighscore()
+    {
+        if (string.IsNullOrWhiteSpace(playerName))
+            return;
+
+        var entry = new HighscoreEntry
+        {
+            PlayerName = playerName,
+            Score = score,
+            Total = totalQuestions,
+            Date = DateTime.Now
+        };
+
+        await HighscoreService.AddHighscoreAsync(entry);
+        highscores = await HighscoreService.GetHighscoresAsync();
+        highscoreSaved = true;
+        StateHasChanged();
+    }
+
+    private string Capitalize(string s) =>
+        char.ToUpper(s[0]) + s.Substring(1);
+}
