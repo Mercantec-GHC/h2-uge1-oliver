@@ -1,5 +1,127 @@
-﻿<h3>Pokemon</h3>
+﻿@page "/pokemons"
+@using BlazorWASM.Models
+@inject BlazorWASM.Services.APIService ApiService
+@inject HttpClient Http 
+
+<h3 class="text-2xl font-bold mb-4">Pokémon Explorer</h3>
+
+<div class="flex">
+    <aside class="w-1/4 p-4 border-r">
+        <h4 class="font-semibold mb-2">Filter by Type</h4>                        <!-- LAV ERROR HANDLING FRA OPGAVEN TIL ALLE KALD SÅ ALLE FEJL KAN BLIVE FANGET OG DE KAN VISES OG FORTÆLLES I VIDEOEN DEMONSTRERES -->
+
+        <ul class="space-y-1">
+            <li>
+                <button class="w-full text-left px-2 py-1 rounded hover:bg-gray-100 transition" 
+                        @onclick="() => LoadAllPokemons()"
+                        disabled="@(!string.IsNullOrEmpty(SelectedType) && SelectedType == "all")">
+                    All
+                </button>
+            </li>
+            @foreach (var type in Types)
+            {
+                <li>
+                    <button class="w-full text-left px-2 py-1 rounded hover:bg-gray-100 transition @(SelectedType == type.Name ? "bg-blue-100" : "")" 
+                            @onclick="() => LoadByType(type.Name)">
+                        @type.Name
+                    </button>
+                </li>
+            }
+        </ul>
+    </aside>
+
+    <section class="w-3/4 p-4">
+        @if (IsLoading)
+        {
+            <p>Loading Pokémons...</p>
+        }
+        else
+        {
+            <div class="grid grid-cols-4 gap-4">
+                @foreach (var item in PokemonList)
+                {
+                    <div class="border rounded-lg p-3 hover:shadow-lg cursor-pointer transition" 
+                         @onclick="() => ShowDetails(item.Name)">
+                        <p class="text-center font-medium">@item.Name</p>
+                    </div>
+                }
+            </div>
+
+            @if (SelectedPokemon != null)
+            {
+                <div class="mt-6 p-4 border rounded-lg shadow-md grid grid-cols-2 gap-4">
+                    <div class="flex items-center justify-center">
+                        <img src="@SelectedPokemon.ImageUrl" alt="@SelectedPokemon.Name" class="w-40 h-40" />
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold mb-2">@SelectedPokemon.Name (#@SelectedPokemon.Id)</h4>
+                        <p><strong>Height:</strong> @SelectedPokemon.Height</p>
+                        <p><strong>Weight:</strong> @SelectedPokemon.Weight</p>
+                        <p><strong>Types:</strong> @string.Join(", ", SelectedPokemon.Types.Select(t => t.Type.Name))</p>
+                    </div>
+                </div>
+            }
+        }
+    </section>
+</div>
 
 @code {
+    private List<NamedApiResource> Types = new();
+    private List<PokemonListItem> PokemonList = new();
+    private PokemonDetail? SelectedPokemon;
+    private bool IsLoading = true;
+    private string SelectedType = "all";
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTypes();
+        await LoadAllPokemons();
+    }
+
+    private async Task LoadTypes()
+    {
+        var typeList = await Http.GetFromJsonAsync<TypeListResponse>("https://pokeapi.co/api/v2/type");
+        Types = typeList.Results.Where(t => t.Name != "shadow" && t.Name != "unknown").OrderBy(t => t.Name).ToList();
+    }
+
+    private async Task LoadAllPokemons()
+    {
+        IsLoading = true;
+        SelectedType = "all";
+        var response = await ApiService.GetPokemonListAsync(50, 0);
+        PokemonList = response?.Results ?? new();
+        SelectedPokemon = null;
+        IsLoading = false;
+    }
+
+    private async Task LoadByType(string typeName)
+    {
+        IsLoading = true;
+        SelectedType = typeName;
+        var typeDetail = await Http.GetFromJsonAsync<TypeDetail>($"https://pokeapi.co/api/v2/type/{typeName}");
+        PokemonList = typeDetail.Pokemon
+            .Select(p => new PokemonListItem { Name = p.Pokemon.Name, Url = p.Pokemon.Url })
+            .ToList();
+        SelectedPokemon = null;
+        IsLoading = false;
+    }
+
+    private async Task ShowDetails(string name)
+    {
+        SelectedPokemon = await ApiService.GetPokemonDetailAsync(name);
+    }
+
+    public class TypeListResponse
+    {
+        public List<NamedApiResource> Results { get; set; } = new();
+    }
+
+    public class TypeDetail
+    {
+        public List<TypePokemonEntry> Pokemon { get; set; } = new();
+    }
+
+    public class TypePokemonEntry
+    {
+        public NamedApiResource Pokemon { get; set; } = new();
+    }
 }
