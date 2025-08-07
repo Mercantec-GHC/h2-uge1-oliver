@@ -31,7 +31,7 @@ namespace BlazorWASM.Services
             scores.Add(entry);
             scores.Sort((a, b) => b.Score.CompareTo(a.Score));
             if (scores.Count > 10)
-                scores = scores.Take(10).ToList(); // Top 10
+                scores = scores.Take(10).ToList(); 
 
             var json = JsonSerializer.Serialize(scores);
             await _js.InvokeVoidAsync("localStorage.setItem", StorageKey, json);

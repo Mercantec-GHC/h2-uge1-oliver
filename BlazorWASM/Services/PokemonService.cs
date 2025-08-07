@@ -2,7 +2,7 @@
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
-namespace BlazorWASM.Services // ← Tilføjet dette
+namespace BlazorWASM.Services 
 {
     public class PokemonService
     {
@@ -16,7 +16,7 @@ namespace BlazorWASM.Services // ← Tilføjet dette
         public async Task<(string name, string imageUrl)> GetRandomPokemonAsync()
         {
             var random = new Random();
-            int id = random.Next(1, 151); // De første 150 Pokémoner
+            int id = random.Next(1, 151); 
             var response = await _http.GetFromJsonAsync<PokemonResponse>($"https://pokeapi.co/api/v2/pokemon/{id}");
 
             return (response.name, response.sprites.front_default);

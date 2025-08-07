@@ -49,27 +49,31 @@
         <p>Du fik @score ud af @totalQuestions rigtige.</p>
         <div class="final-banner">Gotta catch 'em all!</div>
 
-        @if (!highscoreSaved)
-        {
-            <p>Indtast dit navn for at gemme highscore:</p>
-            <input @bind="playerName" placeholder="Dit navn" />
-            <button @onclick="SaveHighscore">Gem highscore</button>
-        }
-        else
-        {
-            <p>Highscore gemt ✅</p>
-        }
+        <div class="highscore-section">
+            @if (!highscoreSaved)
+            {
+                <div class="highscore-input">
+                    <p>Indtast dit navn for at gemme highscore:</p>
+                    <input @bind="playerName" placeholder="Dit navn" />
+                    <button @onclick="SaveHighscore">Gem highscore</button>
+                </div>
+            }
+            else
+            {
+                <p>✅ Highscore gemt</p>
+            }
 
-        @if (highscores?.Count > 0)
-        {
-            <h5>Top 10 Highscores</h5>
-            <ol>
-                @foreach (var hs in highscores)
-                {
-                    <li>@hs.PlayerName: @hs.Score/@hs.Total (@hs.Date.ToShortDateString())</li>
-                }
-            </ol>
-        }
+            @if (highscores?.Count > 0)
+            {
+                <h5>Top 10 Highscores</h5>
+                <ol class="highscore-list">
+                    @foreach (var hs in highscores)
+                    {
+                        <li>@hs.PlayerName: @hs.Score/@hs.Total (@hs.Date.ToString("dd.MM.yyyy"))</li>
+                    }
+                </ol>
+            }
+        </div>
 
         <button class="restart-button" @onclick="ResetQuiz">Start igen</button>
     }
@@ -87,7 +91,6 @@
     private string feedback;
     private List<string> answerOptions = new();
 
-    // Highscore
     private string playerName;
     private bool highscoreSaved = false;
     private List<HighscoreEntry> highscores = new();
