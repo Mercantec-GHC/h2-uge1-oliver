@@ -1,24 +1,49 @@
-### Valgfrit API Projekt ###
+# WHO IS THAT POKEMON!? – Pokémon Quiz i Blazor WebAssembly
 
-Vores projekt benytter Open Trivia DB (https://opentdb.com/) og uddeler dem som en interaktiv quiz.
+Et valgfrit API-projekt, der tester din Pokémon-viden ved hjælp af [PokeAPI](https://pokeapi.co).  
+Quizzen henter et billede af en tilfældig Pokémon og genererer 4 svarmuligheder – og du skal gætte den rigtige.
 
-# Funktioner
-- Henter 5 spørgsmål via HTTP GET
-- Viser et spørgsmål af gangen, og giver 4 svar muligheder (1 knap til hver mulighed)
-- Når brugeren svarer på et spørgsmål, får brugeren feedback med det samme: rigtigt/forkert
-- Tæller point. Efter femte spørgsmål, kan man se hvordan man har klaret sig
-- Mulighed for at tage quizzen om efter femte spørgsmål og quizzen er slut
+---
 
-# Teknologi
-- Blazor WebAssembly
-- Trivia API
-- HttpClient + GetFromJsonAsync
+## ✨ Funktioner
+- Vælg spillets længde: **5, 20, 50 eller 100 Pokémoner**
+- Ét spørgsmål ad gangen med **4 svarmuligheder** (1 korrekt + 3 forkerte)
+- Øjeblikkelig feedback på hvert svar – **"Korrekt!"** eller **"Forkert!"**
+- Resultatvisning efter det sidste spørgsmål
+- Mulighed for at starte quizzen forfra
 
-# Sådan virker det
-- APIService (APIService.cs) kalder trivia API'et
-- UI (QuizPage.razor) viser spørgsmål og svar
-- Model (TriviaQuestion.cs) matcher API-data
+---
 
-# Kørsel
-1) Clone Projektet
-2) Kør projektet og tilføj '/quiz` til URL'en i din browser, og quizz'en vil starte automatisk
+## 🛠 Teknologi
+- **Blazor WebAssembly**
+- **[PokeAPI](https://pokeapi.co)**
+- `HttpClient` + `GetFromJsonAsync` til API-kald
+- Lokal highscore-håndtering (ingen database nødvendig)
+
+---
+
+## 🚀 Sådan virker det
+- Når siden `/pokemonquiz` åbnes, vælger brugeren antal Pokémoner, der skal gættes  
+- Systemet henter en tilfældig Pokémon fra API’et samt tre forkerte svarmuligheder  
+- Brugeren vælger et svar og får straks feedback (rigtigt/forkert)  
+- Spillet fortsætter, indtil det valgte antal spørgsmål er besvaret  
+- Til sidst vises resultat, antal rigtige/forkerte og highscore  
+
+### 📂 Filoversigt
+- **PokemonQuiz.razor** – Hovedkomponenten, der styrer quiz-flowet og viser UI  
+- **PokemonService.cs** – Henter Pokémon-data fra PokeAPI  
+- **HighscoreService.cs** – Holder styr på og opdaterer highscore lokalt  
+- **PokemonQuiz.css** – Styling til quiz-siden  
+
+---
+
+## ▶️ Kørsel
+1. **Clone** projektet 
+2. Kør projektet via din IDE eller - Kør **Dotnet run** i din terminal
+3. Åbn din browser og **tilføj /pokemonquiz til din url**
+4. Quizzen er klar – Gotta catch 'em all!
+
+🙌 Credits
+
+Projektet er lavet som en del af et valgfrit API-projekt, med data fra det fantastiske PokeAPI.
+Ingen Pokémon blev skadet under udviklingen 🐾
