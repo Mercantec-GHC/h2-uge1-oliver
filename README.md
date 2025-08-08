@@ -43,7 +43,9 @@ Quizzen henter et billede af en tilfældig Pokémon og genererer 4 svarmulighede
 3. Åbn din browser og **tilføj /pokemonquiz til din url**
 4. Quizzen er klar – Gotta catch 'em all!
 
-🙌 Credits
+---
+
+## 🙌 Credits
 
 Projektet er lavet som en del af et valgfrit API-projekt, med data fra det fantastiske PokeAPI.
 Ingen Pokémon blev skadet under udviklingen 🐾
